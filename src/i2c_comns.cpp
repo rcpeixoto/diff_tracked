@@ -3,7 +3,7 @@
 #include <sensor_msgs/Range.h>
 #include <std_msgs/Int16.h>
 #include <sensor_msgs/Imu.h>
-#include <std_msgs/Vector3.h>
+#include <geometry_msgs/Vector3.h>
 #include <linux/i2c-dev.h>
 #include <errno.h>
 #include <string.h>
@@ -21,7 +21,7 @@
 #define IMU_ADDR 0x68
 
 
-void callback(const std_msgs::Strang::ConstPtr& msg){
+void callback(const std_msgs::String::ConstPtr& msg){
     
 }
 
@@ -39,7 +39,8 @@ int main(int argc, char** argv){
     ros::Rate r(4);
 
     int file;
-    char *filename = "/dec/i2c-1";
+    char filename[20];
+    snprintf(filename, 20, "/dev/i2c-%d", 1);
 
     if((file = open(filename, O_RDWR)) < 0) {
         exit(1);
@@ -61,16 +62,16 @@ int main(int argc, char** argv){
         //Publishes data from pic
         sensor_msgs::Range msg;
         msg.header.frame_id = "sonar_link";
-        msg.header.stamp = nh.now();
+        msg.header.stamp = ros::Time::now();
         msg.radiation_type = sensor_msgs::Range::ULTRASOUND;
         msg.field_of_view = 0.523559;
         msg.min_range = 0.02;
         msg.max_range = 4;
         msg.range = sonar_data/100;
 
-        sonar.publish(&msg);
-        left_wheel.publish(&left_count);
-        rightWheel.publish(&right_count);
+        sonar.publish(msg);
+        left_wheel.publish(left_count);
+        right_wheel.publish(right_count);
 
         //Reads from IMU
 
