@@ -43,12 +43,9 @@ int main(int argc, char** argv){
 
     int file;
     char filename[20];
-<<<<<<< HEAD
     char buf[1];
     char addr[1];
 
-=======
->>>>>>> 1149b7e59de23ce989ee57aee032362408c3d7bd
     snprintf(filename, 20, "/dev/i2c-%d", 1);
 
     if((file = open(filename, O_RDWR)) < 0) {
@@ -110,11 +107,7 @@ int main(int argc, char** argv){
 
         sonar.publish(msg);
         left_wheel.publish(left_count);
-<<<<<<< HEAD
-        rightWheel.publish(right_count);
-=======
         right_wheel.publish(right_count);
->>>>>>> 1149b7e59de23ce989ee57aee032362408c3d7bd
 
         //Reads from IMU
         if(ioctl(file, I2C_SLAVE, IMU_ADDR) < 0){
