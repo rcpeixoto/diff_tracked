@@ -224,6 +224,9 @@ target_link_libraries(wheel_velocity_controller ${catkin_LIBRARIES})
 add_executable(diff_robot_odometry src/diff_robot_odometry.cpp)
 target_link_libraries(diff_robot_odometry ${catkin_LIBRARIES})
 
+add_executable(i2c_comns src/i2c_comns.cpp)
+target_link_libraries(i2c_comns ${catkin_LIBRARIES})
+
 catkin_install_python(PROGRAMS scripts/i2c_comns.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

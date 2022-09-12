@@ -26,9 +26,17 @@ def talker():
     lwheel = rospy.Publisher("lwheel", Int16, queue_size=10)
     rwheel = rospy.Publisher("rwheel", Int16, queue_size=10)
     sonar = rospy.Publisher("sonar", Range, queue_size=10)
+    acc = rospy.Publisher("Accelaration", Vector3, queue_size=10)	
+    gyro = rospy.Publisher("Gyroscope", Vector3, queue_size=10)	
+
     
     r = rospy.Rate(10)
-    
+    bus.write_i2c_block_data(0x68, 0x6b, [0])
+    bus.write_i2c_block_data(0x68, 0x1b, [0])
+    bus.write_i2c_block_data(0x68, 0x1c, [0])    
+    bus.write_i2c_block_data(0x68, 0x37, [144])
+    bus.write_i2c_block_data(0x68, 0x38, [1])
+
     while not rospy.is_shutdown():
 
         sonar_data = (bus.read_byte(0x12) << 8) +  bus.read_byte(0x12)
@@ -53,6 +61,28 @@ def talker():
         msg.range = sonar_data/100
 
         sonar.publish(msg)
+
+	#bus.write_i2c_block_data(0x68, 0x6b, [0])
+	#bus.write_i2c_block_data(0x68, 0x1b, [0])
+	#bus.write_i2c_block_data(0x68, 0x1c, [0])
+	#bus.write_i2c_block_data(0x68, 0x37, [144])
+	#bus.write_i2c_block_data(0x68, 0x38, [1])
+
+	data = bus.read_i2c_block_data(0x68, 0x3b)
+	
+	accel = Vector3()
+	gyr = Vector3()	
+
+	accel.x = ((data[0] << 8) | data[1])/16384.0
+	accel.y = ((data[2] << 8) | data[3])/16384.0
+	accel.z = ((data[4] << 8) | data[5])/16384.0
+	
+	gyr.x = ((data[8] << 8) | data[9])/131.0
+	gyr.y = ((data[10] << 8) | data[11])/131.0
+	gyr.z = ((data[12] << 8) | data[13])/131.0
+	
+	acc.publish(accel)
+	gyro.publish(gyr)
 
         rospy.spin()
         r.sleep()
