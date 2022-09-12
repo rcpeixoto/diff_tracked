@@ -48,13 +48,10 @@ int main(int argc, char** argv){
 
     snprintf(filename, 20, "/dev/i2c-%d", 1);
 
-    if((file = open(filename, O_RDWR)) < 0) {
-        exit(1);
-    }
+    if((file = open(filename, O_RDWR)) < 0) exit(1);
 
-    if(ioctl(file, I2C_SLAVE, IMU_ADDR) < 0){
-            exit(1);
-    }
+    if(ioctl(file, I2C_SLAVE, IMU_ADDR) < 0) exit(1);
+    
 
     //Configure IMU
     addr[0] = 0x6b;
@@ -81,13 +78,15 @@ int main(int argc, char** argv){
     buf[0] = 0x01;
     write(file, addr, 1);
     write(file, buf, 1);
-
+    close(file);
 
     while(nh.ok()){
+
         //Reads data from Pic
-        if(ioctl(file, I2C_SLAVE, PIC_ADDR) < 0){
-            exit(1);
-        }   
+	if((file = open(filename, O_RDWR)) < 0) exit(1);
+
+	if(ioctl(file, I2C_SLAVE, PIC_ADDR) < 0) exit(1);
+
         char buf[6];
         read(file, buf, 6);
         int sonar_data = (int) (buf[0] << 8) | buf[1];
@@ -109,28 +108,37 @@ int main(int argc, char** argv){
         left_wheel.publish(left_count);
         right_wheel.publish(right_count);
 
+	close(file);
+
+	if((file = open(filename, O_RDWR)) < 0) exit(1);
+
+	if(ioctl(file, I2C_SLAVE, IMU_ADDR)) exit(1);
+
         //Reads from IMU
-        if(ioctl(file, I2C_SLAVE, IMU_ADDR) < 0){
-            exit(1);
-        }   
         char data[14];
-        write(file, 0x3b, 1);
+	addr[0] = 0x3b;
+
+        write(file, addr, 1);
         read(file, data, 14);
         
-        accel.x = ((data[0] << 8) | data[1])/16384.0;
-        accel.y = ((data[2] << 8) | data[3])/16384.0;
-        accel.z = ((data[4] << 8) | data[5])/16384.0;
+        accel.x = ((short int) (data[0] << 8) | data[1])/16384.0;
+        accel.y = ((short int) (data[2] << 8) | data[3])/16384.0;
+        accel.z = ((short int) (data[4] << 8) | data[5])/16384.0;
 
-        gyro.x = ((data[8] << 8) | data[9])/131.0;
-        gyro.y = ((data[10] << 8) | data[11])/131.0;
-        gyro.z = ((data[12] << 8) | data[13])/131.0;
+        gyro.x = ((short int) (data[8] << 8) | data[9])/131.0;
+        gyro.y = ((short int) (data[10] << 8) | data[11])/131.0;
+        gyro.z = ((short int) (data[12] << 8) | data[13])/131.0;
+
         imu.angular_velocity = gyro;
-        imu.linear_accelaration = accel;
-        
+        imu.linear_acceleration = accel;
+	imu.header.frame_id = "mpu_link";
+	imu.header.stamp = ros::Time::now();        
+
         imu_data.publish(imu);
-        
+        close(file);
         ros::spinOnce();
         r.sleep();
     }
+    close(file);
     return 0;
 }
