@@ -3,7 +3,7 @@
 #include <sensor_msgs/Range.h>
 #include <std_msgs/Int16.h>
 #include <sensor_msgs/Imu.h>
-#include <std_msgs/Vector3.h>
+#include <geometry_msgs/Vector3.h>
 #include <linux/i2c-dev.h>
 #include <errno.h>
 #include <string.h>
@@ -35,15 +35,52 @@ int main(int argc, char** argv){
     ros::Publisher left_wheel = nh.advertise<std_msgs::Int16>("lwheel", 10);
     ros::Publisher right_wheel = nh.advertise<std_msgs::Int16>("rwheel", 10);
     ros::Publisher imu_data = nh.advertise<sensor_msgs::Imu>("imu", 10);
-
     ros::Rate r(4);
 
+    geometry_msgs::Vector3 accel;
+    geometry_msgs::Vector3 gyro;
+    sensor_msgs::Imu imu;
+
     int file;
-    char *filename = "/dec/i2c-1";
+    char filename[20];
+    char buf[1];
+    char addr[1];
+
+    snprintf(filename, 20, "/dev/i2c-%d", 1);
 
     if((file = open(filename, O_RDWR)) < 0) {
         exit(1);
     }
+
+    if(ioctl(file, I2C_SLAVE, IMU_ADDR) < 0){
+            exit(1);
+    }
+
+    //Configure IMU
+    addr[0] = 0x6b;
+    buf[0] = 0x00;
+    write(file, addr, 1);
+    write(file, buf, 1);
+
+    addr[0] = 0x1b;
+    buf[0] = 0x00;
+    write(file, addr, 1);
+    write(file, buf, 1);
+
+    addr[0] = 0x1c;
+    buf[0] = 0x00;
+    write(file, addr, 1);
+    write(file, buf, 1);
+
+    addr[0] = 0x37;
+    buf[0] = 0x90;
+    write(file, addr, 1);
+    write(file, buf, 1);
+
+    addr[0] = 0x38;
+    buf[0] = 0x01;
+    write(file, addr, 1);
+    write(file, buf, 1);
 
 
     while(nh.ok()){
@@ -68,13 +105,30 @@ int main(int argc, char** argv){
         msg.max_range = 4;
         msg.range = sonar_data/100;
 
-        sonar.publish(&msg);
-        left_wheel.publish(&left_count);
-        rightWheel.publish(&right_count);
+        sonar.publish(msg);
+        left_wheel.publish(left_count);
+        rightWheel.publish(right_count);
 
         //Reads from IMU
+        if(ioctl(file, I2C_SLAVE, IMU_ADDR) < 0){
+            exit(1);
+        }   
+        char data[14];
+        write(file, 0x3b, 1);
+        read(file, data, 14);
+        
+        accel.x = ((data[0] << 8) | data[1])/16384.0;
+        accel.y = ((data[2] << 8) | data[3])/16384.0;
+        accel.z = ((data[4] << 8) | data[5])/16384.0;
 
-
+        gyro.x = ((data[8] << 8) | data[9])/131.0;
+        gyro.y = ((data[10] << 8) | data[11])/131.0;
+        gyro.z = ((data[12] << 8) | data[13])/131.0;
+        imu.angular_velocity = gyro;
+        imu.linear_accelaration = accel;
+        
+        imu_data.publish(imu);
+        
         ros::spinOnce();
         r.sleep();
     }
