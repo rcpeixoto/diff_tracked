@@ -24,9 +24,11 @@ extern "C"{
 #define PIC_ADDR 0x12
 #define IMU_ADDR 0x68
 
+__u8 *cmd;
+
 
 void callback(const std_msgs::String::ConstPtr& msg){
-    
+    cmd = msg->data;
 }
 
 
@@ -99,6 +101,11 @@ int main(int argc, char** argv){
         msg.max_range = 4;
         msg.range = sonar_data/100.0;
 
+        //Writes velocity commands through i2c
+        __u8 *ptr = cmd;
+        while(ptr != NULL)
+                i2c_smbus_write_byte(file, ptr++);
+        
 
         sonar.publish(msg);
         left_wheel.publish(left_count);
