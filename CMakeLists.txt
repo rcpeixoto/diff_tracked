@@ -212,6 +212,8 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+
+
 add_executable(static_robot_tf src/static_robot_tf.cpp)
 target_link_libraries(static_robot_tf ${catkin_LIBRARIES})
 
@@ -225,7 +227,8 @@ add_executable(diff_robot_odometry src/diff_robot_odometry.cpp)
 target_link_libraries(diff_robot_odometry ${catkin_LIBRARIES})
 
 add_executable(i2c_comns src/i2c_comns.cpp)
-target_link_libraries(i2c_comns ${catkin_LIBRARIES})
+target_link_libraries(i2c_comns ${catkin_LIBRARIES} i2c)
+
 
 catkin_install_python(PROGRAMS scripts/i2c_comns.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
