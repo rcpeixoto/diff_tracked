@@ -4,6 +4,7 @@
 #include <std_msgs/Int16.h>
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Vector3.h>
+#include <string.h>
 
 extern "C"{
 	#include <linux/i2c-dev.h>
@@ -24,11 +25,12 @@ extern "C"{
 #define PIC_ADDR 0x12
 #define IMU_ADDR 0x68
 
-__u8 *cmd;
-
+const unsigned char *cmd;
+int size_cmd;
 
 void callback(const std_msgs::String::ConstPtr& msg){
-    cmd = msg->data;
+    cmd = reinterpret_cast<const unsigned char *>(msg->data.c_str());
+    size_cmd =strlen(msg->data.c_str());
 }
 
 
@@ -46,7 +48,7 @@ int main(int argc, char** argv){
     geometry_msgs::Vector3 accel;
     geometry_msgs::Vector3 gyro;
     sensor_msgs::Imu imu;
-    
+   
     //Opens i2c bus
     int file;
     char filename[20];
@@ -102,11 +104,11 @@ int main(int argc, char** argv){
         msg.range = sonar_data/100.0;
 
         //Writes velocity commands through i2c
-        __u8 *ptr = cmd;
-        while(ptr != NULL)
-                i2c_smbus_write_byte(file, ptr++);
-        
-
+	int i;
+	for(i=0;i<size_cmd;i++)
+	   i2c_smbus_write_byte(file, cmd[i]);
+	
+	
         sonar.publish(msg);
         left_wheel.publish(left_count);
         right_wheel.publish(right_count);
