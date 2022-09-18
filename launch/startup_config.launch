@@ -1,11 +1,7 @@
 <launch>
 
-	<!--Runs rosserial comunications -->
-	<node pkg="rosserial_python" type="serial_node.py" name="rosserial">
-		<param name="port" value="/dev/ttyUSB0" />
-		<param name="baud" value="9600" />
-	
-	</node>
+	<!--Runs I2C communication node-->
+	<node pkg="diff_tracked" type="i2c_comns" name="i2c_comns">
 
 	<!--Runs static transformation for tracked robot -->
 	<node pkg="diff_tracked" type="static_robot_tf" name="static_robot_tf" />
@@ -17,13 +13,13 @@
 	<node pkg="diff_tracked" type="diff_robot_odometry" name="diff_robot_odometry" />
 
 
-	<!--Filters the imu raw data (i.e., linear acceleration and angular velocity) into orientation-->
+	<!--Filters the imu raw data (i.e., linear acceleration and angular velocity) into orientation
 	<node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node">
 		<remap from="imu/data_raw" to="imu_raw_data" />
 		<remap from="imu/data" to="imu_data" />
 		<param name="use_mag" value="false" />
 	</node>
-
+	-->
 	<!--Fuse Odometry data with IMU data and poste it onto Odom frame
 	<node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
 		<param name="output_frame" value="odom"/>
@@ -47,10 +43,10 @@
 
 	<!--Runs move_base package using configuration files-->
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-		<rosparam file="/home/ginnungagap/catkin_ws/src/diff_tracked/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
-		<rosparam file="/home/ginnungagap/catkin_ws/src/diff_tracked/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
-		<rosparam file="/home/ginnungagap/catkin_ws/src/diff_tracked/config/local_costmap_params.yaml" command="load" />
-		<rosparam file="/home/ginnungagap/catkin_ws/src/diff_tracked/config/global_costmap_params.yaml" command="load" />
+		<rosparam file="$(find diff_tracked)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find diff_tracked)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find diff_tracked)/config/local_costmap_params.yaml" command="load" />
+		<rosparam file="$(find diff_tracked)/config/global_costmap_params.yaml" command="load" />
 	</node>
 
 
