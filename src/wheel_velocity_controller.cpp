@@ -19,7 +19,7 @@ int main(int argc, char** argv){
     ros::NodeHandle n;
     ros::Publisher pub_cmd_vel = n.advertise<std_msgs::String>("cmd_msg", 10);
     ros::Subscriber sub_cmd_vel = n.subscribe<geometry_msgs::Twist>("cmd_vel", 10, cmd_vel_callback);
-    ros::Rate r(4);
+    ros::Rate r(2);
 
     while(n.ok()){
         double rightWheel = (vel + omega*(WHEEL_DISTANCE/2));
@@ -33,8 +33,8 @@ int main(int argc, char** argv){
         int rightFoward = (right_wheel_cmd > 1500? 1 : 0);
         int leftFoward = (left_wheel_cmd > 1500? 1 : 0);
 
-        std::string cmd = "#12P" + std::to_string(left_wheel_cmd) +"T1000#13P" + 
-            std::to_string(right_wheel_cmd) + "T1000\r" + std::to_string(rightFoward) + std::to_string(leftFoward);
+        std::string cmd = std::to_string(left_wheel_cmd) +"|"+
+            std::to_string(right_wheel_cmd) +"|"+ std::to_string(leftFoward) + std::to_string(rightFoward);
 
         std_msgs::String cmd_send;
         cmd_send.data = cmd;

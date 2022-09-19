@@ -1,7 +1,7 @@
 <launch>
 
 	<!--Runs I2C communication node-->
-	<node pkg="diff_tracked" type="i2c_comns" name="i2c_comns">
+	<node pkg="diff_tracked" type="i2c_comns" name="i2c_comns" />
 
 	<!--Runs static transformation for tracked robot -->
 	<node pkg="diff_tracked" type="static_robot_tf" name="static_robot_tf" />
@@ -36,8 +36,8 @@
 	<!--Runs Fake_Localization to simulate localization on map-->
 	<node pkg="fake_localization" type="fake_localization" name="fake_localization">
 		<remap from="base_pose_ground_truth" to="odom" />
-		<param name="delta_x" value="5.0" />
-		<param name="delta_y" value="5.0" />
+		<param name="delta_x" value="-5.0" />
+		<param name="delta_y" value="-5.0" />
 	</node>
 	
 

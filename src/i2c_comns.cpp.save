@@ -10,6 +10,7 @@ extern "C"{
 	#include <linux/i2c-dev.h>
 	#include <i2c/smbus.h>
 }
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,12 +25,11 @@ extern "C"{
 #define PIC_ADDR 0x12
 #define IMU_ADDR 0x68
 
-const unsigned char *cmd;
-int size_cmd;
+const char *cmd;
+
 
 void callback(const std_msgs::String::ConstPtr& msg){
-    cmd = reinterpret_cast<const unsigned char *>(msg->data.c_str());
-    size_cmd =strlen(msg->data.c_str());
+    cmd = msg->data.c_str();
 }
 
 
@@ -42,11 +42,12 @@ int main(int argc, char** argv){
     ros::Publisher left_wheel = nh.advertise<std_msgs::Int16>("lwheel", 10);
     ros::Publisher right_wheel = nh.advertise<std_msgs::Int16>("rwheel", 10);
     ros::Publisher imu_data = nh.advertise<sensor_msgs::Imu>("imu", 10);
-    ros::Rate r(2);
+    ros::Rate r(4);
 
     geometry_msgs::Vector3 accel;
     geometry_msgs::Vector3 gyro;
     sensor_msgs::Imu imu;
+    
     //Opens i2c bus
     int file;
     char filename[20];
@@ -102,10 +103,9 @@ int main(int argc, char** argv){
         msg.range = sonar_data/100.0;
 
         //Writes velocity commands through i2c
-	int i;
-	for(i=0;i<size_cmd;i++){
-	    i2c_smbus_write_byte(file, cmd[i]);
-	}
+	__u8 dummy = 0x00;
+	i2c_smbus_write_block_data(file, dummy, strlen(cmd),);
+
         sonar.publish(msg);
         left_wheel.publish(left_count);
         right_wheel.publish(right_count);
